@@ -74,14 +74,9 @@ colorPicker.addHandle(homeHandle)
 ```
 
 ## Installation
-### Carthage
-```bash
-github "joncardasis/ChromaColorPicker"
-```
-
 ### Cocoapods
 ```bash
-pod 'ChromaColorPicker'
+pod 'ChromaColorPicker', :podspec =>'https://raw.githubusercontent.com/FFirX/ChromaColorPicker/2.1.0/ChromaColorPicker.podspec'
 ```
 ### Manually
 Add all files from the `Source` folder to your project.
