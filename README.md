@@ -23,6 +23,14 @@ Version 1.x.x can be found on the <b>legacy</b> branch. While the pod is still a
 <img src="../assets/Screenshot-With-BG.png?raw=true" height="350">
 </details>
 
+---
+## Changes
+Something different from the original version
+- The last `ChromaColorHandle` added will be set as current handle.
+- No response to touch outside the view (the cycle).
+- Select color by clicking. If no `ChromaColorHandle` is exist, add one, or use the last handle
+---
+
 ## Examples
 ```Swift
 let colorPicker = ChromaColorPicker(frame: CGRect(x: 0, y: 0, width: 300, height: 300))

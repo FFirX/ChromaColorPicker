@@ -91,6 +91,10 @@ public class ChromaColorPicker: UIControl, ChromaControlStylable {
         handles.append(handle)
         colorWheelView.addSubview(handle)
         brightnessSlider?.trackColor = handle.color
+        // For displaying properly.
+        layoutNow()
+        // Set the last handle added as current handle.
+        currentHandle = handle
     }
     
     public func connect(_ slider: ChromaBrightnessSlider) {
@@ -103,20 +107,47 @@ public class ChromaColorPicker: UIControl, ChromaControlStylable {
     public override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
         let location = touch.location(in: colorWheelView)
         
-        for handle in handles {
-            if extendedHitFrame(for: handle).contains(location) {
-                colorWheelView.bringSubviewToFront(handle)
-                animateHandleScale(handle, shouldGrow: true)
+        if colorWheelView.pointIsInColorWheel(location) {
+            var foundHandleAtTouchPoint: Bool = false
+            
+            for handle in handles {
+                if extendedHitFrame(for: handle).contains(location) {
+                    foundHandleAtTouchPoint = true
+                    
+                    colorWheelView.bringSubviewToFront(handle)
+                    animateHandleScale(handle, shouldGrow: true)
+                    
+                    if let slider = brightnessSlider {
+                        slider.trackColor = handle.color.withBrightness(1)
+                        slider.currentValue = slider.value(brightness: handle.color.brightness)
+                    }
+                    
+                    currentHandle = handle
+                    break
+                }
+            }
+            if !foundHandleAtTouchPoint {
+                var handle: ChromaColorHandle
                 
-                if let slider = brightnessSlider {
-                    slider.trackColor = handle.color.withBrightness(1)
-                    slider.currentValue = slider.value(brightness: handle.color.brightness)
+                if handles.isEmpty {
+                    // If no handle exist, add one.
+                    let touchPoint = touch.location(in: colorWheelView)
+                    let colorAtPoint = colorWheelView.pixelColor(at: touchPoint)
+                    handle = addHandle(at: colorAtPoint)
+                } else {
+                    // Or, use [currentHandle].
+                    // If [handles] isn't empty, [currentHandle] isn't possible to be nil.
+                    handle = currentHandle!
                 }
                 
-                currentHandle = handle
-                return true
+                animateHandleScale(handle, shouldGrow: true)
+                
+                updatehandle(handle, at: location)
             }
+            
+            return true
         }
+        
         return false
     }
     
@@ -134,19 +165,7 @@ public class ChromaColorPicker: UIControl, ChromaControlStylable {
             location = positionOnColorWheelEdge
         }
         
-        if let pixelColor = colorWheelView.pixelColor(at: location) {
-            let previousBrightness = handle.color.brightness
-            handle.color = pixelColor.withBrightness(previousBrightness)
-            positionHandle(handle, forColorLocation: location)
-            
-            if let slider = brightnessSlider {
-                slider.trackColor = pixelColor
-                slider.currentValue = slider.value(brightness: previousBrightness)
-            }
-            
-            informDelegateOfColorChange(on: handle)
-            sendActions(for: .valueChanged)
-        }
+        updatehandle(handle, at: location)
         
         return true
     }
@@ -202,6 +221,22 @@ public class ChromaColorPicker: UIControl, ChromaControlStylable {
         layer.cornerRadius = bounds.height / 2.0
         layer.masksToBounds = false
         colorWheelViewWidthConstraint.constant = -borderWidth * 2.0
+    }
+    
+    internal func updatehandle(_ handle: ChromaColorHandle, at location: CGPoint) {
+        if let pixelColor = colorWheelView.pixelColor(at: location) {
+            let previousBrightness = handle.color.brightness
+            handle.color = pixelColor.withBrightness(previousBrightness)
+            positionHandle(handle, forColorLocation: location)
+            
+            if let slider = brightnessSlider {
+                slider.trackColor = pixelColor
+                slider.currentValue = slider.value(brightness: previousBrightness)
+            }
+            
+            informDelegateOfColorChange(on: handle)
+            sendActions(for: .valueChanged)
+        }
     }
     
     // MARK: Actions
