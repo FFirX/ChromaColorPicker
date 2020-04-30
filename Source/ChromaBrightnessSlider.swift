@@ -81,7 +81,11 @@ public class ChromaBrightnessSlider: UIControl, ChromaControlStylable {
         let location = touch.location(in: self)
         let shouldBeginTracking = interactableBounds.contains(location)
         if shouldBeginTracking {
-            sendActions(for: .touchDown)
+            let clampedPositionX: CGFloat = max(0, min(location.x, confiningTrackFrame.width))
+            let value = clampedPositionX / confiningTrackFrame.width
+            
+            currentValue = value
+            sendActions(for: [.touchDown, .valueChanged]) // Add 'valueChanged' for 'Click To Adjust'
         }
         return shouldBeginTracking
     }
